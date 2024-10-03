@@ -1,14 +1,51 @@
 # iRunner
-IOS跑步app
 
-## 主要实现
-1.IOS端
+## 项目概述
 
-2.实时轨迹绘制
+iRunner 是一个 iOS 应用程序，旨在帮助用户跟踪他们的跑步活动。该应用利用 GPS 技术记录用户的跑步路线，提供详细的统计数据和可视化信息，并包含一个激励性的成就系统。
 
-3.结算与成就系统
+## 功能特性
 
-## 界面展示
-<img width="397" alt="截屏2024-10-03 15 42 25" src="https://github.com/user-attachments/assets/cdffa428-c8a6-4f41-ad1b-9a555ced2cb6">
+- 实时 GPS 跟踪
+- 路线可视化
+- 跑步统计（距离、时间、配速等）
+- 成就系统
+- 实时跑步数据展示
 
-<img width="397" alt="截屏2024-10-03 15 42 37" src="https://github.com/user-attachments/assets/fa344559-eb4e-4771-9b5a-7aaf5276eea8">
+## 技术栈
+
+- Swift 6
+- SwiftUI
+- MapKit
+- Core Location
+
+## 安装指南
+
+1. 克隆仓库：git clone https://github.com/Vegetog/iRunner.git
+2. 打开 Xcode 项目文件 `iRunner.xcodeproj`
+3. 在 Xcode 中选择目标设备或模拟器
+4. 点击运行按钮或按 `Cmd + R` 来构建和运行项目
+
+## 使用说明
+
+1. 启动应用
+2. 允许位置访问权限
+3. 点击 "开始跑步" 按钮开始记录
+4. 跑步过程中，实时查看跑步数据
+5. 跑步结束后点击 "结束" 按钮
+6. 查看跑步统计和本次成就获得情况
+
+## 贡献指南
+
+我们欢迎任何形式的贡献。如果您想为项目做出贡献，请遵循以下步骤：
+
+1. Fork 项目
+2. 创建您的特性分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交您的更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 开启一个 Pull Request
+
+## 许可证
+
+本项目采用 MIT 许可证 - 查看 [LICENSE.md](LICENSE.md) 文件了解详情。
+
