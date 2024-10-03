@@ -6,13 +6,14 @@ iRunner 是一个 iOS 应用程序，旨在帮助用户跟踪他们的跑步活�
 
 ## 示例画面
 
-![](pic1.png)
-
-![](pic2.png)
+<div style="display: flex; justify-content: space-between;">
+    <img src="pic1.png" style="width: 48%;" alt="示例画面1">
+    <img src="pic2.png" style="width: 48%;" alt="示例画面2">
+</div>
 
 ## 演示视频
 
-[点击此处查看演示视频](video.mp4)
+[点击此处查看演示视频](https://www.bilibili.com/video/BV1gSxQeQE79)
 
 ## 功能特性
 
