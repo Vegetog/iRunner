@@ -2,6 +2,54 @@ import SwiftUI
 import MapKit
 import CoreLocation
 
+struct GCJ02Converter {
+    static let a = 6378245.0
+    static let ee = 0.00669342162296594323
+
+    static func transform(latitude: Double, longitude: Double) -> CLLocationCoordinate2D {
+        if isOutOfChina(latitude: latitude, longitude: longitude) {
+            return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+        }
+        
+        var dLat = transformLat(x: longitude - 105.0, y: latitude - 35.0)
+        var dLon = transformLon(x: longitude - 105.0, y: latitude - 35.0)
+        
+        let radLat = latitude / 180.0 * Double.pi
+        var magic = sin(radLat)
+        magic = 1 - ee * magic * magic
+        let sqrtMagic = sqrt(magic)
+        
+        dLat = (dLat * 180.0) / ((a * (1 - ee)) / (magic * sqrtMagic) * Double.pi)
+        dLon = (dLon * 180.0) / (a / sqrtMagic * cos(radLat) * Double.pi)
+        
+        let mgLat = latitude + dLat
+        let mgLon = longitude + dLon
+        
+        return CLLocationCoordinate2D(latitude: mgLat, longitude: mgLon)
+    }
+    
+    static func isOutOfChina(latitude: Double, longitude: Double) -> Bool {
+        return longitude < 72.004 || longitude > 137.8347 || latitude < 0.8293 || latitude > 55.8271
+    }
+    
+    static func transformLat(x: Double, y: Double) -> Double {
+        var ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * sqrt(abs(x))
+        ret += (20.0 * sin(6.0 * x * Double.pi) + 20.0 * sin(2.0 * x * Double.pi)) * 2.0 / 3.0
+        ret += (20.0 * sin(y * Double.pi) + 40.0 * sin(y / 3.0 * Double.pi)) * 2.0 / 3.0
+        ret += (160.0 * sin(y / 12.0 * Double.pi) + 320 * sin(y * Double.pi / 30.0)) * 2.0 / 3.0
+        return ret
+    }
+    
+    static func transformLon(x: Double, y: Double) -> Double {
+        var ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * sqrt(abs(x))
+        ret += (20.0 * sin(6.0 * x * Double.pi) + 20.0 * sin(2.0 * x * Double.pi)) * 2.0 / 3.0
+        ret += (20.0 * sin(x * Double.pi) + 40.0 * sin(x / 3.0 * Double.pi)) * 2.0 / 3.0
+        ret += (150.0 * sin(x / 12.0 * Double.pi) + 300.0 * sin(x / 30.0 * Double.pi)) * 2.0 / 3.0
+        return ret
+    }
+}
+
+
 struct ContentView: View {
     @State private var isRunning = false
     @State private var isPaused = false
@@ -194,6 +242,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         super.init()
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.distanceFilter = 10 // 每10米更新一次位置
         locationManager.requestWhenInUseAuthorization()
     }
     
@@ -217,22 +266,31 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         guard let newLocation = locations.last, isRunning, !isPaused else { return }
         
         if newLocation.horizontalAccuracy <= 20 {
+            // 转换坐标
+            let gcjCoordinate = GCJ02Converter.transform(latitude: newLocation.coordinate.latitude,
+                                                         longitude: newLocation.coordinate.longitude)
+            let gcjLocation = CLLocation(latitude: gcjCoordinate.latitude, longitude: gcjCoordinate.longitude)
+            
             if let lastLocation = lastLocation {
                 let timeDiff = newLocation.timestamp.timeIntervalSince(lastLocation.timestamp)
-                if timeDiff > 10 { // 如果两个位置之间的时间间隔超过10秒，我们认为这是一个不连续的点
+                if timeDiff > 10 {
                     startNewSegment()
                 } else {
-                    let distance = newLocation.distance(from: lastLocation) / 1000 // Convert to km
+                    let distance = gcjLocation.distance(from: lastLocation) / 1000 // 转换为公里
                     totalDistance += distance
                     
-                    if totalTime > 0 {
+                    print("New location: \(gcjCoordinate.latitude), \(gcjCoordinate.longitude)")
+                    print("Distance added: \(distance) km")
+                    print("Total distance: \(totalDistance) km")
+                    
+                    if totalTime > 0 && totalDistance > 0 {
                         currentPace = (Double(totalTime) / 60) / totalDistance
                     }
                 }
             }
             
-            routeSegments[routeSegments.count - 1].append(newLocation.coordinate)
-            lastLocation = newLocation
+            routeSegments[routeSegments.count - 1].append(gcjCoordinate)
+            lastLocation = gcjLocation
             
             objectWillChange.send()
         }
@@ -260,7 +318,6 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         currentPace = 0
     }
 }
-
 
 struct MapView: UIViewRepresentable {
     @ObservedObject var locationManager: LocationManager
